@@ -1,0 +1,23 @@
+{
+  "name": "p3-t1-handling-events-alu0100961768",
+  "version": "0.0.0",
+  "description": "Apuntes de [eloquentJavascript](https://eloquentjavascript.net/15_event.html#c_TpxWIP8ylU)",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "gh-pages": "^2.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ULL-ESIT-PL-1920/p3-t1-handling-events-alu0100961768.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ULL-ESIT-PL-1920/p3-t1-handling-events-alu0100961768/issues"
+  },
+  "homepage": "https://github.com/ULL-ESIT-PL-1920/p3-t1-handling-events-alu0100961768#readme"
+}

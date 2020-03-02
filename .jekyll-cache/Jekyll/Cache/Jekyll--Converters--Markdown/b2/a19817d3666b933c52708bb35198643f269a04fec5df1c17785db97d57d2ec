@@ -1,0 +1,270 @@
+I"�K<h2 id="índice">Índice</h2>
+
+<ul>
+  <li><a href="#práctica-p0-t0-esprima-logging-fases-de-un-compilador">Práctica: p0-t0-esprima-logging. Fases de un compilador.</a>
+    <ul>
+      <li><a href="#índice">Índice</a></li>
+      <li><a href="#objetivos">Objetivos</a></li>
+      <li><a href="#árboles--sintácticos">Árboles  sintácticos</a>
+        <ul>
+          <li><a href="#esprima">Esprima</a></li>
+          <li><a href="#ats-explorer">ATS Explorer</a></li>
+          <li><a href="#aplicación-práctica">Aplicación práctica</a>
+            <ul>
+              <li><a href="#objetivos-1">Objetivos</a></li>
+              <li><a href="#procedimiento">Procedimiento</a>
+                <ul>
+                  <li><a href="#resolviendo-con-regexp">Resolviendo con Regexp</a></li>
+                  <li><a href="#resolviendo-con-esprima">Resolviendo con esprima</a>
+                    <ul>
+                      <li><a href="#localizar-los-nodos-función">Localizar los nodos función</a></li>
+                      <li><a href="#acceder-a-los-nodos-función">Acceder a los nodos función</a></li>
+                      <li><a href="#modificar-los-hijos-de-nuestro-modo-función">Modificar los hijos de nuestro modo función</a></li>
+                      <li><a href="#transformar-nuestro-arbol-de-nuevo-a-código">Transformar nuestro arbol de nuevo a código</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#commanderjs">Commander.js</a>
+        <ul>
+          <li><a href="#instalación">Instalación</a></li>
+          <li><a href="#opciones">Opciones</a>
+            <ul>
+              <li><a href="#declarar-opciones">Declarar opciones</a></li>
+              <li><a href="#parsear-opciones">Parsear opciones</a></li>
+              <li><a href="#mostrar-ayuda">Mostrar ayuda</a></li>
+            </ul>
+          </li>
+          <li><a href="#ejecutar-opciones">Ejecutar opciones</a></li>
+        </ul>
+      </li>
+      <li><a href="#herramientas-adicionales">Herramientas Adicionales</a></li>
+      <li><a href="#autor">Autor</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="objetivos">Objetivos</h2>
+
+<p><strong>Descripcion de la práctica:</strong> https://ull-esit-pl-1819.github.io/introduccion/tema0-introduccion-a-pl/practicas/p0-t0-esprima-logging/</p>
+
+<ul class="task-list">
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Aceptar la asignación en Classroom de esta tarea.</p>
+  </li>
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Envie su github y su alu en el formulario facilitado por el profesor.</p>
+  </li>
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Entregar el enlace al repositorio en el campus virtual.</p>
+  </li>
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Ejecutar paso a paso el código de <code class="highlighter-rouge">logging.js</code> usando el debugger de chromium, intentando comprender el funcionamiento de la transformación realizada. Hacer un resumen de lo aprendido en el fichero Markdown.</p>
+  </li>
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Modificar el programa para que los <code class="highlighter-rouge">console.log</code> insertados informen de los valores de los parámetros pasados a la función.</p>
+  </li>
+  <li class="task-list-item">
+    <p><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Reto.</p>
+  </li>
+</ul>
+
+<h2 id="árboles--sintácticos">Árboles  sintácticos</h2>
+
+<h3 id="esprima">Esprima</h3>
+
+<p><a href="https://esprima.org">Esprima</a> es una herramienta para realizar análisis léxico y sintáctico de programas JavaScript. Durante esta práctica, trabajaremos con esta herramienta como módulo de Node.js.</p>
+
+<p>Una vez iniciado node, instalamos Esprima via npm <code class="highlighter-rouge">npm install esprima</code>. También necesitaremos instalar los módulos  <code class="highlighter-rouge">estraverse</code> y <code class="highlighter-rouge">escodegen</code>. Finalmente, importaremos dichos nodos usando la función <code class="highlighter-rouge">require('module')</code>.</p>
+
+<p><strong>La funcionalidad de cada módulo es la siguiente</strong>:</p>
+
+<ul>
+  <li>
+    <p><strong>esprima:</strong> Es nuestro parser. Transforma una cadena que contiene código JavaScript en un arbol sintáctico (que se comporta como un objeto JS).</p>
+  </li>
+  <li>
+    <p><strong>estraverse:</strong> Nos permitirá recorrer el arbol sintáctico generado por <code class="highlighter-rouge">esprima</code>, recorriendo sus nodos y deteniéndonos en los que nos interesan. Tambien nos permitirá modificar dicho arbol, añadiendo, eliminando o modificando nodos de la forma que indiquemos.</p>
+  </li>
+  <li>
+    <p><strong>escodegen:</strong>  Permite reconstruir el codigo JavaScript a partir del arbol sintactico de dicho código.</p>
+  </li>
+</ul>
+
+<h3 id="ats-explorer">ATS Explorer</h3>
+
+<p><a href="https://astexplorer.net/#/gist/b5826862c47dfb7dbb54cec15079b430/161f9396189f8e0bae46de9d5e1fb94a2ce87f24">ATS Explorer</a> es una herramienta que nos permite parsear un código JavaScript en su respectivo arbol sintáctico de forma cómoda y ágil. Gracias a ella, podemos explorar el arbol sintáctico que generará nuestro código JavaScript via web, sin necesidad de ejecutar un programa o usar el debugger.</p>
+
+<p>ATS Explorer nos da una gran multitud de lenguajes y analizadores sintácticos para construir los arboles sintácticos del código. En el caso de JavaScript, si bien no incluye directamente esprima, si que incluye <strong>espree</strong>. Como esprima y espree han sido diseñados para ser compatibles el uno con el otro, utilizaremos espree.</p>
+
+<h3 id="aplicación-práctica">Aplicación práctica</h3>
+
+<h4 id="objetivos-1">Objetivos</h4>
+
+<p>Uno de los objetivos de esta práctica es modificar un codigo JavaScript dado por referencia para insertar en el mismo un <code class="highlighter-rouge">console.log</code> avisándonos de cuando hemos entrado en  una función, así como cuales son las variables con las que hemos accedido a la misma.</p>
+
+<p>Ejemplo:</p>
+
+<p>Dado el siguiente input:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">foo</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">blah</span><span class="dl">'</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">y</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">z</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">z</span><span class="o">+</span><span class="mi">3</span><span class="p">;</span>
+  <span class="p">})(</span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nx">foo</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="dl">'</span><span class="s1">wut</span><span class="dl">'</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Nuestro programa debe devolver:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">foo</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`Entering foo(</span><span class="p">${</span> <span class="nx">a</span> <span class="p">}</span><span class="s2">,</span><span class="p">${</span> <span class="nx">b</span> <span class="p">}</span><span class="s2">)`</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">blah</span><span class="dl">'</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">y</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">z</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`Entering &lt;anonymous function&gt;(</span><span class="p">${</span> <span class="nx">z</span> <span class="p">}</span><span class="s2">)`</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">z</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>
+    <span class="p">}(</span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nx">foo</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="dl">'</span><span class="s1">wut</span><span class="dl">'</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h4 id="procedimiento">Procedimiento</h4>
+
+<h5 id="resolviendo-con-regexp">Resolviendo con Regexp</h5>
+
+<p>Una primera idea podría ser el no utilizar esprima y resolver este problema mediante el uso de expresiones regulares.</p>
+
+<p>Pero, como reza el dicho popular:</p>
+
+<blockquote>
+  <p>Some people, when confronted with a problem, think “I know, I’ll use regular expressions.” Now they have two problems.</p>
+
+  <p><strong><em>“</em>Jaime Zawinski</strong></p>
+</blockquote>
+
+<p>Al enfrentarnos al problema con expresiones regulares, nos topamos con que no debemos tan solo limitarnos a buscar una función. También debemos comprobar que dicha funcion no exista en una cadena, esté comentada o que no sea una verdadera función por algun motivo, pese a tener la estructura de función; y aún tenemos que lidiar con el requisito de mencionar que atributos estamos incluyendo en susodicha función…</p>
+
+<h5 id="resolviendo-con-esprima">Resolviendo con esprima</h5>
+
+<p>Así pues, una vez hemos descartado las funciones regulares, trataremos de resolver el probema usando esprima.</p>
+
+<h6 id="localizar-los-nodos-función">Localizar los nodos función</h6>
+
+<p>En primer lugar, exploraremos como funcionan las funciones en JavaScript usando ATS Explorer.</p>
+
+<p>Tras probar diferentes códigos y explorar sus árboles, podemos llegar a la siguiente conclusión: Existen dos tipos diferentes de declaraciones de funciones: <strong>FunctionDeclaration</strong> y <strong>FunctionExpression</strong>.</p>
+
+<p><strong>FunctionDeclaration</strong> es una funcion que se ha declarado en el código, y que se espera utilizar más adelante durante la ejecución del mismo. Por ejemplo, <code class="highlighter-rouge">function bar(x, y){return x*y;}</code></p>
+
+<p><strong>FunctionExpression</strong> es una funcion que puede ser almacenada en una variable, por ejemplo, <code class="highlighter-rouge">var x= function(x, y){return x*y};</code> .</p>
+
+<h6 id="acceder-a-los-nodos-función">Acceder a los nodos función</h6>
+
+<p>Nuestro objetivo es acceder a los nodos de FunctionDeclaration y FunctionExpression. Pero para ello, primero debemos transformar nuestro código JS a modificar en un arbol sintáctico. Para ello, usaremos la función <code class="highlighter-rouge">espree.parse(code, {ecmaVersion:6})</code>. Es importante que usemos ecmaVersion6 para que no tengamos errores a la hora de interpretar las cadenas entre los carácteres “”`””.</p>
+
+<p>Ahora que tenemos nuestro arbol sintáctico, podemos proceder a explorar sus nodos y detenernos en los nodos de funciones.</p>
+
+<p>Para ello, usaremos la función <code class="highlighter-rouge">estraverse.traverse(arbol, {enter: funcion()})</code>, que nos permitirá recorrer nuestro arbol sintáctico nodo a nodo, y ejecutar una función al entrar a dicho nodo.</p>
+
+<p>Una vez dentro del nodo, es tan facil como explorar si el tipo de nuestro nodo <code class="highlighter-rouge">node.type</code> es una función, y ejecutar una nueva función para incorporar un nuevo nodo  hijo a nuestro nodo función.</p>
+
+<h6 id="modificar-los-hijos-de-nuestro-modo-función">Modificar los hijos de nuestro modo función</h6>
+
+<p>Ahora que estamos en nuestro nodo función, es hora de modificarlo.</p>
+
+<p>En primer lugar, podemos acceder al nombre de la función via <code class="highlighter-rouge">node.id.name</code>, y al vector de nombre de los atributos que le pasamos por referencia via <code class="highlighter-rouge">node.params</code>.</p>
+
+<p>Primero, creamos una cadena con el mensaje que queremos mostrar utilizando la información de los parámetros del nodo función. Una vez tenemos nuestra cadena, debemos transformarla a nodo de un arbol usando <code class="highlighter-rouge">espree.parse</code>, ya que no podemos introducir código directamente en un arbol. Después, copiamos el nodo correspondiente a nuestra cadena y lo introducimos en <code class="highlighter-rouge">node.body.body</code> (donde se alamcena el código de nuestra función) haciendo uso de <code class="highlighter-rouge">node.body= stringNode.concat(node.body.body)</code>.</p>
+
+<h6 id="transformar-nuestro-arbol-de-nuevo-a-código">Transformar nuestro arbol de nuevo a código</h6>
+
+<p>Finalmente, una vez hemos modificado todos los nodos que neceistabamos, para transformar nuestro nuevo arbol sintáctico en código JS tan solo tendremos que usar <code class="highlighter-rouge">escodegen.generate(arbol)</code>. ¡Tachán! Nuestro programa ya puede modificar código para introducir un <code class="highlighter-rouge">console.log</code> al entrar en cada función, que nos anuncie con que variables estamos accediendo.</p>
+
+<h2 id="commanderjs">Commander.js</h2>
+
+<p><a href="https://github.com/tj/commander.js/">Commander.js</a> es un módulo de Node.js que nos permite manejar con comodidad los argumentos que recibimos como parámetros al ejecutar nuestro programa. Generalmente utilizartemos los parámetros recividos en <code class="highlighter-rouge">proccess.argv</code></p>
+
+<h3 id="instalación">Instalación</h3>
+
+<p>Para poder utilizar comander, debemos instalar su módulo via <code class="highlighter-rouge">npm install commander</code>. Posteriormente, lo incluiremos en nuestro código a través de un require <code class="highlighter-rouge">const program= require('commander')</code>.</p>
+
+<h3 id="opciones">Opciones</h3>
+
+<p>Commander cuenta con una serie de opciones que nos permite especificar como debe reacionar el programa al recibir ciertos parámetros como argumentos.</p>
+
+<h4 id="declarar-opciones">Declarar opciones</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">program.</th>
+      <th style="text-align: left">Explicación</th>
+      <th>Uso</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">version</td>
+      <td style="text-align: left">Devuelve la version actual del programa al ejecutar <code class="highlighter-rouge">node ejemplo -V</code>.</td>
+      <td>version(“0.0.0”)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">description</td>
+      <td style="text-align: left">Devuelve una descripción del programa.</td>
+      <td>description(“programa de prueba”)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">usage</td>
+      <td style="text-align: left">Extension de help donde podemos especificar como usar el programa correctamente. Se mostrará al usar <code class="highlighter-rouge">program.help</code>.</td>
+      <td>usage(‘[options] &lt;filename&gt; […]’)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">option</td>
+      <td style="text-align: left">Permite declarar una opción, como puede ser llamada y que argumentos es necesario que reciba para poder ser ejecutada.</td>
+      <td>option(‘-o, –output &lt;filename&gt;’)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Notese que en el ejemplo de<code class="highlighter-rouge">program.option</code>, podremos comprobar si la opcion ha sido flageada mediante un <code class="highlighter-rouge">if(program.output)</code>, ya que output es el nombre de dicha opción.</p>
+
+<h4 id="parsear-opciones">Parsear opciones</h4>
+
+<p>Para parsear un array de opciones, deberemos ejecutar la función <code class="highlighter-rouge">program.parse(process.argv)</code>. En este caso utilizaremos <code class="highlighter-rouge">process.argv</code> porque nos interesa utilizar los comandos que han sido pasado por línea de comandos al ejecutar el programa, pero podría ser posible utilizar otro array si así lo necesitasemos.</p>
+
+<h4 id="mostrar-ayuda">Mostrar ayuda</h4>
+
+<p>Podemos mostrar la auyda mediante <code class="highlighter-rouge">program.help()</code>. Esta funcion nos mostrará los posibles comandos reconocidos por el programa (aquellos que hayamos declarado en el objeto commander); asi como el uso del programa (definido en <code class="highlighter-rouge">program.usage</code>)</p>
+
+<p>### Ejecutar opciones</p>
+
+<p>Una vez ejecutado el programa y parseada la linea de comandos, podemos especificar el comportamiento del programa teniendo en cuenta que instrucciones se han recibido o no por línea de comandos.</p>
+
+<p>Si una opción no ha sido espeficicada, <code class="highlighter-rouge">program.nombreOpcion</code> valdrá <code class="highlighter-rouge">false</code>. Si la opción ha sido declarada junto a parámetros adicionales, estos se guardarán en <code class="highlighter-rouge">program.nombreOpcion</code>. En otro caso, <code class="highlighter-rouge">program.nombreOpcion</code> valdrá <code class="highlighter-rouge">true</code>.</p>
+
+<h2 id="herramientas-adicionales">Herramientas Adicionales</h2>
+
+<p>Se han utilizado las siguientes herramientas externas para la resolución de la práctica.</p>
+
+<ul>
+  <li><strong><a href="https://code.visualstudio.com">Visual Studio Code</a>:</strong>  Editor de texto enriquecido utilizado para la programación del código.</li>
+  <li><strong><a href="https://typora.io/#windows">Typora</a>:</strong> Editor de texto enriquecido orientado a Markdown utilizado para el desarrollo del README.md.</li>
+  <li><strong><a href="https://magnetikonline.github.io/markdown-toc-generate/">Markdown-toc-generate</a>:</strong> Herramienta que permite generar facilmente una TOC de nuestro código Markdown.</li>
+</ul>
+
+<h2 id="autor">Autor</h2>
+
+<ul>
+  <li><strong>Alumno:</strong> Germán Alfonso Teixidó.</li>
+  <li><strong>Asignatura:</strong> Procesadores de Lenguajes.</li>
+  <li>
+    <p><strong>Fecha:</strong> 12/2/2020.</p>
+  </li>
+  <li><strong>alu:</strong> alu0100961768.</li>
+</ul>
+:ET

@@ -1,0 +1,182 @@
+I"g.<h2 id="tabla-de-contenidos">Tabla de contenidos</h2>
+
+<ul>
+  <li><a href="#práctica-p1-t1-iaas-uso-de-iaasulles">Práctica: p1-t1-iaas. Uso de iaas.ull.es</a>
+    <ul>
+      <li><a href="#tabla-de-contenidos">Tabla de contenidos</a></li>
+      <li><a href="#conectándonos-al-vpn-de-la-ull">Conectándonos al VPN de la ULL</a></li>
+      <li><a href="#conectándonos-a-nuestra-máquina-virtual">Conectándonos a nuestra máquina virtual</a></li>
+      <li><a href="#personalizando-nuestra-máquna-para-poder-trabajar-en-ella">Personalizando nuestra máquna para poder trabajar en ella</a>
+        <ul>
+          <li><a href="#personalizar-ssh">Personalizar ssh</a></li>
+          <li><a href="#homebrew">Homebrew</a></li>
+          <li><a href="#nodejs">Node.js</a>
+            <ul>
+              <li><a href="#nvm">nvm</a></li>
+              <li><a href="#nodejs-1">Node.js</a></li>
+              <li><a href="#jshint">jshint</a></li>
+            </ul>
+          </li>
+          <li><a href="#git">Git</a>
+            <ul>
+              <li><a href="#gitconfig">.gitconfig</a></li>
+              <li><a href="#mostrar-rama-actual-en-prompt">Mostrar rama actual en prompt</a></li>
+            </ul>
+          </li>
+          <li><a href="#rvm">RVM</a></li>
+          <li><a href="#micro">micro</a>
+            <ul>
+              <li><a href="#clipboard-support">Clipboard support</a></li>
+              <li><a href="#filemanager">Filemanager</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#express-web-framework">Express Web Framework</a>
+        <ul>
+          <li><a href="#ejecutando-el-ejemplo-del-profesor">Ejecutando el ejemplo del profesor</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="conectándonos-al-vpn-de-la-ull">Conectándonos al VPN de la ULL</h2>
+
+<p>Realizaremos la siguiente práctica desde un dispositivo Linux (Ubuntu), conectandonos a la máquina virtual PL-19 del iaas de la ULL. Para poder acceder al iaas desde fuera del centro de cálculo, debemos conectarnos al servidor de la ULL.</p>
+
+<p>Para ello, utilizaremos los siguientes comandos:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>vpnc <span class="nt">--gateway</span> vpn.ull.es <span class="nt">--id</span> ULL <span class="nt">--username</span> aluXXXXXXXXXX <span class="nt">--local-port</span> 0
+</code></pre></div></div>
+
+<p>Necesitaremos introducir la contraseña del servidor (usu4r10s), así como la contraseña de nuestro alu para poder conectarnos.</p>
+
+<p>Ahora que estamos conectados, podemos comenzar la práctica.</p>
+
+<h2 id="conectándonos-a-nuestra-máquina-virtual">Conectándonos a nuestra máquina virtual</h2>
+
+<p>Antes que nada, debemos conectarnos a nuestra máquina virtual. Para poder conectarnos, debemos encenderla. Accediendo a iaas.ull.es, y logendonos con nuestro alu y contraseña, podemos navegar entre nuestras máquinas virtuales disponibles. Encendemos PL-19, y selecionamos “VNC Console” de entre sus opciones.</p>
+
+<p><img src="https://i.imgur.com/wqzqQOt.png" alt="" /></p>
+
+<p>Una vez logeados por primera vez, nos pedirá cambiar la contraseña por defecto.</p>
+
+<p>Despues de ello, podemos ejecutar <code class="highlighter-rouge">ifconfig</code> para obtener la dirección IP de conexión de nuestra máquina (ens3).</p>
+
+<p><img src="https://i.imgur.com/ywvH0u8.png" alt="" /></p>
+
+<p>En nuestro caso, dicha ip será <code class="highlighter-rouge">10.6.129.23</code>. Para conectarnos a nuestra máquina desde nuestro ordenador sin necesidad de trabajar con una terminal en web, abrimos una terminal en nuestra computadora e introducimos el comando <code class="highlighter-rouge">ssh usuario@10.6.129.23</code>. Al conectarnos, se nos requerirá escribir nuestra contraseña para logearnos.</p>
+
+<h2 id="personalizando-nuestra-máquna-para-poder-trabajar-en-ella">Personalizando nuestra máquna para poder trabajar en ella</h2>
+
+<h3 id="personalizar-ssh">Personalizar ssh</h3>
+
+<p>Primero de todo, generamos una clave rsa en nuestra máquina local via <code class="highlighter-rouge">ssh-keygen -trsa</code>. Procedemos a modificar nuestro archivo <code class="highlighter-rouge">config</code> en <strong>/.ssh</strong> para establecer un alias a la ruta (En este caso, usaremos el alias <strong>pl19</strong>.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># PL 19/20
+# iaas.ull.es
+Host pl19
+HostName 10.6.129.23
+user usuario
+IdentityFile /home/yahlunna/.ssh/pl19
+# send the signal every four minutes
+ServerAliveInterval 240
+</code></pre></div></div>
+
+<p>Posteriormente, modificamos nuestro fichero <code class="highlighter-rouge">authorized_keys</code>  en el /.ssh de nuestra máquna virtual, y le añadimos la clave rsa que hemos generado en nuestra máquina local.</p>
+
+<p>¡Genial! Ya podemos conectarnos via ssh con tan solo escribir <code class="highlighter-rouge">ssh pl19</code> en nuestra máquina local.</p>
+
+<h3 id="homebrew">Homebrew</h3>
+
+<p>Homebrew es un manager de paquetes para Linux y WSL. Permite instalar paquetes en nuestro directorio home, sin necesidad de utilizar sudo o tener permisos de administración.</p>
+
+<p>Para instalar Homebrew, usaremos los siguientes comandos:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sh <span class="nt">-c</span> <span class="s2">"</span><span class="si">$(</span>curl <span class="nt">-fsSL</span> https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh<span class="si">)</span><span class="s2">"</span>
+
+<span class="nb">test</span> <span class="nt">-d</span> ~/.linuxbrew <span class="o">&amp;&amp;</span> <span class="nb">eval</span> <span class="si">$(</span>~/.linuxbrew/bin/brew shellenv<span class="si">)</span>
+<span class="nb">test</span> <span class="nt">-d</span> /home/linuxbrew/.linuxbrew <span class="o">&amp;&amp;</span> <span class="nb">eval</span> <span class="si">$(</span>/home/linuxbrew/.linuxbrew/bin/brew shellenv<span class="si">)</span>
+<span class="nb">test</span> <span class="nt">-r</span> ~/.bash_profile <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"eval </span><span class="se">\$</span><span class="s2">(</span><span class="si">$(</span>brew <span class="nt">--prefix</span><span class="si">)</span><span class="s2">/bin/brew shellenv)"</span> <span class="o">&gt;&gt;</span>~/.bash_profile
+<span class="nb">echo</span> <span class="s2">"eval </span><span class="se">\$</span><span class="s2">(</span><span class="si">$(</span>brew <span class="nt">--prefix</span><span class="si">)</span><span class="s2">/bin/brew shellenv)"</span> <span class="o">&gt;&gt;</span>~/.profile
+</code></pre></div></div>
+
+<p>Ahora, podremos instalar paquetes sin necesidad de sudo a través de brew utilizando <code class="highlighter-rouge">brew install package</code>.</p>
+
+<h3 id="nodejs">Node.js</h3>
+
+<h4 id="nvm">nvm</h4>
+
+<p>Para instalar node version manager, utilizamos <code class="highlighter-rouge">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash</code></p>
+
+<h4 id="nodejs-1">Node.js</h4>
+
+<p>Instalaremos node via <code class="highlighter-rouge">nvm install node</code>, que nos instalará la versión más actualizada de node en neustra máquina.</p>
+
+<h4 id="jshint">jshint</h4>
+
+<p>Instalación global: <code class="highlighter-rouge">npm install -g jshint</code></p>
+
+<h3 id="git">Git</h3>
+
+<h4 id="gitconfig">.gitconfig</h4>
+
+<p>Configuraremos nuestro .gitconfig para añadir tanto nuestros git aliases (en mi caso, no usaré ninguno, ya que prefiero utilizar las funciones de autocompletado para escribir comandos rápidamente) así como como nuestro correo y username.</p>
+
+<p>Para configurar un alias, <code class="highlighter-rouge">git config --global alias.co checkout</code></p>
+
+<p>Para configurar el nombre, <code class="highlighter-rouge">git config --global user.name aluXXXXXXXXXX</code></p>
+
+<p>Para configurar el correo, <code class="highlighter-rouge">git config --global user.email aluXXXXXXXXXX@ull.edu.es</code></p>
+
+<p>Tambien debemos generar una llave trsa para poder conectarnos a github via SSH. Usaremos el comando <code class="highlighter-rouge">ssh-keygen -trsa</code>. La llave se guardará en un fichero <code class="highlighter-rouge">id_rsa.pub</code>, en  <strong>/.ssh</strong>. Copiamos nuestra llave en las llaves permitidas para conectarnos via ssh en github. Así no tendremos que lidiar con el protocolo https, evitando dar nuestro usuario y contraseña a cada push o pull.</p>
+
+<h4 id="mostrar-rama-actual-en-prompt">Mostrar rama actual en prompt</h4>
+
+<p>Podemos mostrar la rama actual en el prompt de la terminal con: <code class="highlighter-rouge">export PS1='\[\033[0;32m\]\[\033[0m\033[0;32m\]\u\[\033[0;36m\] @ \[\033[0;36m\]\h \w\[\033[0;32m\]$(__git_ps1)\n\[\033[0;32m\]└─\[\033[0m\033[0;32m\] \$\[\033[0m\033[0;32m\] ▶\[\033[0m\] '</code></p>
+
+<p><strong>Nota personal:</strong> (__git_ps1) nos muestra la rama actual, el resto del export es puramente por motivos de postureo. No está creado por mí, pero me gusta su estética, así que he decidido utilizarlo.</p>
+
+<p>Para cargar esta configuracion del prompt de la terminal, asumiendo que nos conectaremos via ssh, modificaremos el fichero <code class="highlighter-rouge">~/.bash_profile</code> con el comando anterior.</p>
+
+<p>### RVM</p>
+
+<p>Para instalar rvm:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>gnupg2
+
+gpg2 <span class="nt">--recv-keys</span> 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+
+<span class="se">\c</span>url <span class="nt">-sSL</span> https://get.rvm.io | bash <span class="nt">-s</span> stable
+</code></pre></div></div>
+
+<h3 id="micro">micro</h3>
+
+<p>El editor de texto <a href="https://micro-editor.github.io">micro</a> es un sucesor espiritual de <a href="https://www.nano-editor.org">nano</a>, centrándose en su simplicidad de uso e instalación (no requiere de dependencias o archivos externos), pero siendo más flexible respecto a la inclusión de pluggins externos y aprovechando las capacidades y potencia de las terminales modernas. Al ser más personalizable, potente y tener más herramientas a su disposición, no se vuelve tan solo una alternativa a nano para ediciones rápidas, sino un solido editor de texto para el día a día, ya sea como editor para trabajar via ssh, o para programar código via términal.</p>
+
+<h4 id="clipboard-support">Clipboard support</h4>
+
+<p>El clipboard de micro es independiente al del sistema operativo. Para poder copiar y pegar texto dentro y fuera de micro, tendremos que depender de <strong>x11</strong> y de <strong>xclip</strong>.</p>
+
+<p>Para instalar <strong>x11</strong>: <code class="highlighter-rouge">sudo apt-get install xorg openbox</code></p>
+
+<p>Para instalar <strong>xclip</strong>: <code class="highlighter-rouge">sudo apt install xclip</code></p>
+
+<p>Para poder compartir clipboard entre la maquina virtual a la que accedemos via ssh y la máquina que estamos utilizando, deberemos utilizar la instrucción -Y al acceder via ssh.</p>
+
+<h4 id="filemanager">Filemanager</h4>
+
+<p>Filemanager es un pluggin de micro con la misma funcionalidad de NerdTREE en vi:</p>
+
+<p>Para instalar, ejecutar el comando <code class="highlighter-rouge">plugin install filemanager</code> en micro, y resetear micro.</p>
+
+<p><img src="https://i.imgur.com/OxZNW6N.png" alt="" /></p>
+
+<h2 id="express-web-framework">Express Web Framework</h2>
+
+<h3 id="ejecutando-el-ejemplo-del-profesor">Ejecutando el ejemplo del profesor</h3>
+
+<p><img src="https://i.imgur.com/IuHeBkG.png" alt="" /></p>
+
+:ET
