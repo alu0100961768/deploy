@@ -1,0 +1,17 @@
+---
+layout: page
+permalink: /censoredkeyboard/
+---
+
+Idealmente, este imput text no permite usar las teclas Q, W o X. <p> 
+Lamentablemente, `preventDefault()` está anulado por parte de Jekyll :c 
+
+<input type="text">
+<script>
+  let field= document.querySelector("input");
+  field.addEventListener("keydown", function(event) {
+    if (event.keyCode== "Q".charCodeAt(0) || event.keyCode== "W".charCodeAt(0) || event.keyCode== "X".charCodeAt(0)){
+        event.preventDefault();
+    }
+  });
+</script>
